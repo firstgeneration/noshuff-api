@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "b04c44c86eca3e486ef2ab4a9a08c9c2c1531422cfe0123e55023fb1b157effc"
+            "sha256": "b79dda1f55f6bba726aebc441bfe7f98220e369cf6c7b42855f7299a97b3f56e"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -31,6 +31,15 @@
             ],
             "index": "pypi",
             "version": "==3.1.5"
+        },
+        "django-safedelete": {
+            "hashes": [
+                "sha256:95790074a017c5feb0bb1eae161d300d8eceda9c0dddcc93a81ac5f83be82e2e",
+                "sha256:b829e8a3abae3e00aa04461263c812d3444ebd7ae57aa0fa1ca3cdc7c414a82a",
+                "sha256:ee86498ea6bf59e27d73c0ae196f5b5060a917ed6b5b6df77f108e91dd9bfe57"
+            ],
+            "index": "pypi",
+            "version": "==0.5.6"
         },
         "psycopg2-binary": {
             "hashes": [
