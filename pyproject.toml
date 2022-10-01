@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "noshuff-api"
+version = "0.1.0"
+description = "NoShuffle API"
+authors = ["NoShuffle <noshuffapp@gmail.com>"]
+readme = "README.md"
+packages = [{include = "noshuff_api"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
