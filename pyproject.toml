@@ -8,6 +8,7 @@ packages = [{include = "noshuff_api"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+Django = "==4.1.1"
 
 
 [build-system]
