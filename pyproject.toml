@@ -10,6 +10,7 @@ packages = [{include = "noshuff_api"}]
 python = "^3.9"
 Django = "==4.1.1"
 django-environ = "==0.9.0"
+psycopg2-binary = "==2.9.3"
 
 
 [build-system]
