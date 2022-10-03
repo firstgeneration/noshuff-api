@@ -6,6 +6,23 @@ authors = ["NoShuffle <noshuffapp@gmail.com>"]
 readme = "README.md"
 packages = [{include = "noshuff_api"}]
 
+[tool.black]
+exclude = '''
+    core/apps.py
+    | manage.py
+    | noshuff/settings.py
+    | noshuff/asgi.py
+    | noshuff/wsgi.py
+    | migrations
+'''
+
+[tool.isort]
+skip_gitignore = true
+balanced_wrapping = true
+extend_skip_glob = [
+  "*/migrations/*",
+]
+
 [tool.poetry.dependencies]
 python = "^3.9"
 Django = "==4.1.1"
