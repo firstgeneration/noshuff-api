@@ -140,3 +140,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'core.User'
+
+SPOTIFY_CLIENT_ID = env('SPOTIFY_CLIENT_ID')
+SPOTIFY_SECRET_KEY = env('SPOTIFY_SECRET_KEY')
+SPOTIFY_REDIRECT_URI = 'http://localhost:8000/api/v1/post_auth'
