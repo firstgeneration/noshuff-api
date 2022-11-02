@@ -3,6 +3,7 @@ from core.authentication.spotify_auth_utils import generate_spotify_auth_url, Us
 from spotipy.oauth2 import SpotifyOAuth
 from django.conf import settings
 from core.models import User
+import urllib
 
 
 def pre_auth(request):
@@ -36,9 +37,15 @@ def post_auth(request):
     token_info = auth_handler.get_access_token(code=code, as_dict=True, check_cache=False)
     user = User.objects.get(spotify_access_token=token_info['access_token'])
 
-    breakpoint()
+    noshuff_access_token = user.generate_auth_token()
 
-    # Create a noshuff auth token for this user
+    data = {
+        'noshuff_access_token': noshuff_access_token,
+        'user_id': user.id,
+        'display_name': user.display_name,
+        'avatar_url': user.avatar_url
+    }
 
-    # Redirect to Frontend here with a data payload
-    # to store noshuff_token and other relevant info
+    query_params = urllib.parse.urlencode(data, doseq=False)
+
+    return redirect(f'{settings.NOSHUFF_FE_REDIRECT_URI}?{query_params}')

@@ -2,6 +2,8 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django_extensions.db.models import TimeStampedModel
 import uuid
+import jwt
+from django.conf import settings
 
 
 class User(TimeStampedModel, AbstractUser):
@@ -13,3 +15,22 @@ class User(TimeStampedModel, AbstractUser):
     spotify_access_token = models.CharField(max_length=255, null=True, blank=True)
     spotify_refresh_token = models.CharField(max_length=255, null=True, blank=True)
     spotify_scope = models.CharField(max_length=255, null=True, blank=True)
+
+    @staticmethod
+    def get_user_from_auth_token(token):
+        decoded = User.decode_auth_token(token)
+        id = decoded['id']
+        return User.objects.filter(id=id).first()
+
+    @staticmethod
+    def decode_auth_token(token):
+        # Add in error handling
+        return jwt.decode(token, settings.JWT_SECRET, algorithms='HS256')
+
+    def generate_auth_token(self):
+
+        return jwt.encode(
+            { 'id': self.id },
+            settings.JWT_SECRET,
+            algorithm='HS256'
+        )
