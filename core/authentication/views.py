@@ -42,8 +42,8 @@ def post_auth(request):
     data = {
         'noshuff_access_token': noshuff_access_token,
         'user_id': user.id,
-        'display_name': user.display_name,
-        'avatar_url': user.avatar_url
+        'display_name': user.spotify_display_name,
+        'avatar_url': user.spotify_avatar_url
     }
 
     query_params = urllib.parse.urlencode(data, doseq=False)

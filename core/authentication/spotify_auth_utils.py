@@ -77,6 +77,8 @@ class UserTokenCache(spotipy.CacheHandler):
         else:
             changed = False
             user_data = {
+                'spotify_access_token': spotify_access_token,
+                'spotify_refresh_token': spotify_refresh_token,
                 'spotify_display_name': spotify_display_name,
                 'spotify_email': spotify_email,
                 'spotify_avatar_url': spotify_avatar_url,
