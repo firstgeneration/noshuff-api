@@ -28,11 +28,7 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 # False if not in os.environ because of casting above
 DEBUG = env('DEBUG')
 
-# Raises Django's ImproperlyConfigured
-# exception if SECRET_KEY not in os.environ
 SECRET_KEY = env('SECRET_KEY')
-
-# DATABASE_URL = env('DATABASE_URL')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -81,12 +77,18 @@ WSGI_APPLICATION = 'noshuff_api.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": env('DATABASE_ENGINE'),
+        "NAME": env('DATABASE_NAME'),
+        "USER": env('DATABASE_USER'),
+        "PASSWORD": env('DATABASE_PASSWORD'),
+        "HOST": env('DATABASE_HOST'),
+        "PORT": env('DATABASE_PORT'),
+        "TEST": {
+            "NAME": env('DATABASE_TEST_NAME'),
+        },
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
