@@ -7,6 +7,8 @@ import requests
 import json
 from .models import User
 from .spotipy_utils import get_noshuff_user_fields
+from rest_framework_simplejwt.tokens import RefreshToken
+from urllib.parse import urlencode
 
 
 def spotify_pre_auth(request):
@@ -42,26 +44,32 @@ def spotify_post_auth_callback(request):
             setattr(noshuff_user, field, val)
         noshuff_user.save()
 
-    query_params = "token=token"
-    # response_data = {'noshuff_access_token': generate_noshuff_access_token()}
-    # query_params = urllib.parse.urlencode(response_data, doseq=False)
+    noshuff_refresh_token = RefreshToken.for_user(noshuff_user)
+    noshuff_access_token = str(noshuff_refresh_token.access_token)
+
+    response_params = {
+        'noshuff_access_token': noshuff_access_token,
+        'noshuff_refresh_token': noshuff_refresh_token,
+    }
+    query_params = urlencode(response_params)
 
     return redirect(f'{reverse("frontend_placeholder_redirect")}?{query_params}')
     # return redirect(settings.NOSHUFF_FE_REDIRECT_URI + '?' + query_params)
 
 # TODO: Remove this when frontend is built
 def frontend_placeholder_redirect(request):
-    token = request.GET.get('token', '')
+    noshuff_access_token = request.GET.get('noshuff_access_token', '')
+    noshuff_refresh_token = request.GET.get('noshuff_refresh_token', '')
 
     html = f"""
     <html>
     <head><title>Spotify User Profile</title></head>
     <body>
         <h1>Welcome to NoShuff</h1>
-        <p>Auth token: {token}</p>
+        <p>Auth token: {noshuff_access_token}</p>
+        <p>Refresh token: {noshuff_refresh_token}</p>
     </body>
     </html>
     """
 
     return HttpResponse(html)
-
