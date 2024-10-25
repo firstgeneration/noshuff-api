@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.http import HttpResponseRedirect
 from spotipy import Spotify, SpotifyOAuth
 from django.conf import settings
 from django.urls import reverse
@@ -47,19 +48,25 @@ def spotify_post_auth_callback(request):
     noshuff_refresh_token = RefreshToken.for_user(noshuff_user)
     noshuff_access_token = str(noshuff_refresh_token.access_token)
 
-    response_params = {
-        'noshuff_access_token': noshuff_access_token,
-        'noshuff_refresh_token': noshuff_refresh_token,
-    }
-    query_params = urlencode(response_params)
+    params = urlencode({'noshuff_access_token': noshuff_access_token})
+    
+    # TODO: Use settings.NOSHUFF_FE_REDIRECT_URI when FE is ready
+    redirect_url = f"{reverse("frontend_placeholder_redirect")}?{params}"
 
-    return redirect(f'{reverse("frontend_placeholder_redirect")}?{query_params}')
-    # return redirect(settings.NOSHUFF_FE_REDIRECT_URI + '?' + query_params)
+    response = HttpResponseRedirect(redirect_url)
+    response.set_cookie(
+        key='noshuff_refresh_token',
+        value=noshuff_refresh_token,
+        httponly=True,
+        secure=True,
+        samesite='Strict' # TODO: Adjust this when FE is ready
+    )
+
+    return response
 
 # TODO: Remove this when frontend is built
 def frontend_placeholder_redirect(request):
     noshuff_access_token = request.GET.get('noshuff_access_token', '')
-    noshuff_refresh_token = request.GET.get('noshuff_refresh_token', '')
 
     html = f"""
     <html>
@@ -67,7 +74,6 @@ def frontend_placeholder_redirect(request):
     <body>
         <h1>Welcome to NoShuff</h1>
         <p>Auth token: {noshuff_access_token}</p>
-        <p>Refresh token: {noshuff_refresh_token}</p>
     </body>
     </html>
     """
