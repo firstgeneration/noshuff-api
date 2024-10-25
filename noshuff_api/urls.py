@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 from core import views
+from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
     # Admin
@@ -15,4 +16,5 @@ urlpatterns = [
         views.frontend_placeholder_redirect,
         name='frontend_placeholder_redirect'
     ),
+    path('api/v1/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
