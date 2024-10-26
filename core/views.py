@@ -3,11 +3,12 @@ from django.http import HttpResponseRedirect
 from spotipy import Spotify, SpotifyOAuth
 from django.conf import settings
 from django.urls import reverse
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 import requests
 import json
 from .models import User
 from .spotipy_utils import get_noshuff_user_fields
+from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from urllib.parse import urlencode
 
@@ -79,3 +80,27 @@ def frontend_placeholder_redirect(request):
     """
 
     return HttpResponse(html)
+
+def logout_view(request):
+    refresh_token = request.COOKIES.get('refresh_token')
+
+    if refresh_token is None:
+        return JsonResponse(
+            {"detail": "Refresh token not provided."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        token = RefreshToken(refresh_token)
+        token.blacklist()
+    except Exception as e:
+        return JsonResponse({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    response = JsonResponse({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
+    response.delete_cookie(
+        "noshuff_refresh_token",
+        domain=settings.SESSION_COOKIE_DOMAIN,
+        path="/"
+    )
+
+    return response

@@ -129,6 +129,8 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
 }
 
+SESSION_COOKIE_DOMAIN = env('SESSION_COOKIE_DOMAIN')
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 

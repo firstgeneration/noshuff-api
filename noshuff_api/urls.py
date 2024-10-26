@@ -17,4 +17,5 @@ urlpatterns = [
         name='frontend_placeholder_redirect'
     ),
     path('api/v1/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/v1/auth/logout/', views.logout_view, name='logout'),
 ]
