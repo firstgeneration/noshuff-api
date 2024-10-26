@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
+    'drf_spectacular',
     'core',
 ]
 
@@ -120,6 +121,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 SIMPLE_JWT = {
@@ -162,3 +164,5 @@ SPOTIPY_CLIENT_SECRET = SPOTIFY_SECRET_KEY
 SPOTIPY_REDIRECT_URI = SPOTIFY_REDIRECT_URI
 
 POST_AUTH_REDIRECT_URI = env('POST_AUTH_REDIRECT_URI')
+
+ENABLE_API_DOCS = env('ENABLE_API_DOCS')
