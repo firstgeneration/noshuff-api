@@ -18,3 +18,4 @@ class UserFactory(factory.django.DjangoModelFactory):
     spotify_account_href = LazyAttribute(lambda obj: f'https://api.spotify.com/v1/users/{obj.spotify_id}'),
     spotify_account_uri = LazyAttribute(lambda obj: f'spotify:user:{obj.spotify_id}')
     spotify_product = Faker('random_element', elements=['free', 'premium', 'family'])
+    personal_blurb = Faker('paragraph', nb_sentences=3)

@@ -17,3 +17,23 @@ class UserAPITests(TestCase):
         response = self.client.get(reverse('current_user'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+        fields = {
+            'uuid',
+            'spotify_id',
+            'spotify_display_name',
+            'spotify_avatar_url',
+            'personal_blurb',
+        }
+
+        response_json = response.json()
+        self.assertEqual(fields, set(response_json.keys()))
+
+        for field in fields:
+            model_value = getattr(current_user, field)
+            if field == 'uuid':
+                model_value = str(model_value)
+
+            self.assertEqual(
+                model_value, response_json[field]
+            )
+
