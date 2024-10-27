@@ -21,6 +21,9 @@ urlpatterns = [
     ),
     path('api/v1/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/v1/auth/logout/', views.logout_view, name='logout'),
+
+    # Resources
+    path('api/v1/current_user', views.current_user, name='current_user'),
 ]
 
 # OpenAPI

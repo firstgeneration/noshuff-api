@@ -1,18 +1,22 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from spotipy import Spotify, SpotifyOAuth
 from django.conf import settings
 from django.urls import reverse
-from django.http import HttpResponse, JsonResponse
 import requests
 import json
 from .models import User
 from .spotipy_utils import get_noshuff_user_fields
 from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from urllib.parse import urlencode
+from core.serializers import UserSerializer
 
 
+@api_view(['GET'])
 def spotify_pre_auth(request):
     sp_oauth = SpotifyOAuth(
         client_id=settings.SPOTIPY_CLIENT_ID,
@@ -20,10 +24,11 @@ def spotify_pre_auth(request):
         redirect_uri=settings.SPOTIPY_REDIRECT_URI,
         scope="user-library-read"
     )
-
     auth_url = sp_oauth.get_authorize_url()
+    
     return redirect(auth_url)
 
+@api_view(['GET'])
 def spotify_post_auth_callback(request):
     sp_oauth = SpotifyOAuth(
         client_id=settings.SPOTIPY_CLIENT_ID,
@@ -65,7 +70,7 @@ def spotify_post_auth_callback(request):
 
     return response
 
-# TODO: Remove this when frontend is built
+@api_view(['GET'])
 def frontend_placeholder_redirect(request):
     noshuff_access_token = request.GET.get('noshuff_access_token', '')
 
@@ -81,11 +86,12 @@ def frontend_placeholder_redirect(request):
 
     return HttpResponse(html)
 
+@api_view(['GET'])
 def logout_view(request):
     refresh_token = request.COOKIES.get('refresh_token')
 
     if refresh_token is None:
-        return JsonResponse(
+        return Response(
             {"detail": "Refresh token not provided."},
             status=status.HTTP_400_BAD_REQUEST
         )
@@ -94,9 +100,9 @@ def logout_view(request):
         token = RefreshToken(refresh_token)
         token.blacklist()
     except Exception as e:
-        return JsonResponse({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    response = JsonResponse({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
+    response = Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
     response.delete_cookie(
         "noshuff_refresh_token",
         domain=settings.SESSION_COOKIE_DOMAIN,
@@ -104,3 +110,11 @@ def logout_view(request):
     )
 
     return response
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def current_user(request):
+    serializer = UserSerializer(request.user)
+
+    return Response(serializer.data)
