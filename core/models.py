@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+import uuid
 
 
 class TimestampModelMixin(models.Model):
@@ -31,6 +32,7 @@ class User(AbstractBaseUser, PermissionsMixin, TimestampModelMixin):
 
     objects = UserManager()
 
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     is_active = models.BooleanField(default=True)
     email = models.EmailField(unique=True)
     spotify_id = models.CharField(max_length=100)
