@@ -5,15 +5,15 @@ from django.conf import settings
 from django.urls import reverse
 import requests
 import json
-from .models import User
-from .spotipy_utils import get_noshuff_user_fields
+from core.models import User
+from core.spotipy_utils import get_noshuff_user_fields, get_spotify_user_playlists
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from urllib.parse import urlencode
-from core.serializers import UserSerializer
+from core.serializers import UserSerializer, PlaylistSerializer
 
 
 @api_view(['GET'])
@@ -116,5 +116,15 @@ def logout_view(request):
 @permission_classes([IsAuthenticated])
 def current_user(request):
     serializer = UserSerializer(request.user)
+
+    return Response(serializer.data)
+
+@api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+def spotify_user_playlists(request):
+    # current_user = request.user
+    current_user = User.objects.first()
+    playlists = get_spotify_user_playlists(current_user)
+    serializer = PlaylistSerializer(playlists, many=True)
 
     return Response(serializer.data)

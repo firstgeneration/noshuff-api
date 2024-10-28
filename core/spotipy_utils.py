@@ -1,5 +1,7 @@
 from django.utils import timezone
 from datetime import timedelta
+import spotipy
+from spotipy.exceptions import SpotifyException
 
 def get_avatar_url(images_list):
     try:
@@ -28,3 +30,39 @@ def get_noshuff_user_fields(spotify_user, token_data):
         'spotify_refresh_token': token_data["refresh_token"],
         'spotify_access_token_expires_at': get_spotify_access_token_expires_at(token_data),
     }
+
+def get_spotify_user_playlists(
+    user,
+    only_owned_by_user=True,
+    only_non_collaborative=True
+):
+    spotify = spotipy.Spotify(auth=user.spotify_access_token)
+    playlists = []
+    limit = 50
+    offset = 0
+
+    try:
+        while True:
+            playlists_data = spotify.current_user_playlists(limit=limit, offset=offset)
+            items = playlists_data.get('items', [])
+
+            for playlist in items:
+                is_owned_by_user = playlist['owner']['id'] == user.spotify_id
+                is_collaborative = playlist['collaborative']
+
+                if only_owned_by_user and not is_owned_by_user:
+                    continue
+                if only_non_collaborative and is_collaborative:
+                    continue
+
+                playlists.append(playlist)
+
+            if playlists_data['next'] is None:
+                break
+
+            offset += limit
+
+        return playlists
+    except SpotifyException as e:
+        print(f"Error fetching playlists: {e}")
+        return None
