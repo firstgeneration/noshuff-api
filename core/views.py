@@ -14,6 +14,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from urllib.parse import urlencode
 from core.serializers import UserSerializer, PlaylistSerializer
+from rest_framework_simplejwt.exceptions import TokenError
 
 
 @api_view(['GET'])
@@ -86,27 +87,34 @@ def frontend_placeholder_redirect(request):
 
     return HttpResponse(html)
 
-@api_view(['GET'])
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def logout_view(request):
-    refresh_token = request.COOKIES.get('refresh_token')
-
-    if refresh_token is None:
+    refresh_token = request.COOKIES.get('noshuff_refresh_token')
+    if not refresh_token:
         return Response(
-            {"detail": "Refresh token not provided."},
+            {'detail': 'Refresh token not provided.'},
             status=status.HTTP_400_BAD_REQUEST
         )
 
     try:
         token = RefreshToken(refresh_token)
         token.blacklist()
-    except Exception as e:
-        return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    except TokenError:
+        return Response(
+            {'detail': 'Invalid token'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
-    response = Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
-    response.delete_cookie(
-        "noshuff_refresh_token",
-        domain=settings.SESSION_COOKIE_DOMAIN,
-        path="/"
+    response = Response(status=status.HTTP_204_NO_CONTENT)
+    response.set_cookie(
+        'noshuff_refresh_token',
+        value='',
+        max_age=0,
+        httponly=True,
+        samesite='Lax',
+        secure=True,
+        path='/'
     )
 
     return response
