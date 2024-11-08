@@ -23,10 +23,10 @@ def spotify_pre_auth(request):
         client_id=settings.SPOTIPY_CLIENT_ID,
         client_secret=settings.SPOTIPY_CLIENT_SECRET,
         redirect_uri=settings.SPOTIPY_REDIRECT_URI,
-        scope="user-library-read"
+        scope=settings.SPOTIPY_SCOPE
     )
     auth_url = sp_oauth.get_authorize_url()
-    
+
     return redirect(auth_url)
 
 @api_view(['GET'])
@@ -35,28 +35,22 @@ def spotify_post_auth_callback(request):
         client_id=settings.SPOTIPY_CLIENT_ID,
         client_secret=settings.SPOTIPY_CLIENT_SECRET,
         redirect_uri=settings.SPOTIPY_REDIRECT_URI,
+        scope=settings.SPOTIFY_SCOPE
     )
     token_data = sp_oauth.get_access_token(request.GET['code'])
     sp = Spotify(auth=token_data["access_token"])
     spotify_user = sp.current_user()
-
     noshuff_user_fields = get_noshuff_user_fields(spotify_user, token_data)
-    noshuff_user = User.objects.filter(
-        spotify_id=noshuff_user_fields['spotify_id']
-    ).first()
-
-    if not noshuff_user:
-        noshuff_user = User.objects.create(**noshuff_user_fields)
-    else:
-        for field, val in noshuff_user_fields.items():
-            setattr(noshuff_user, field, val)
-        noshuff_user.save()
+    noshuff_user, _ = User.objects.update_or_create(
+        spotify_id=noshuff_user_fields['spotify_id'],
+        defaults=noshuff_user_fields
+    )
 
     noshuff_refresh_token = RefreshToken.for_user(noshuff_user)
     noshuff_access_token = str(noshuff_refresh_token.access_token)
 
     params = urlencode({'noshuff_access_token': noshuff_access_token})
-    
+
     # TODO: Use settings.NOSHUFF_FE_REDIRECT_URI when FE is ready
     redirect_url = f"{reverse("frontend_placeholder_redirect")}?{params}"
 
@@ -66,7 +60,8 @@ def spotify_post_auth_callback(request):
         value=noshuff_refresh_token,
         httponly=True,
         secure=True,
-        samesite='Strict' # TODO: Adjust this when FE is ready
+        samesite='Strict', # TODO: Adjust this when FE is ready
+        max_age=86400 * 30
     )
 
     return response
@@ -87,10 +82,11 @@ def frontend_placeholder_redirect(request):
 
     return HttpResponse(html)
 
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def logout_view(request):
-    refresh_token = request.COOKIES.get('noshuff_refresh_token')
+    refresh_token = request.COOKIES.get('refresh_token')
     if not refresh_token:
         return Response(
             {'detail': 'Refresh token not provided.'},
@@ -106,19 +102,25 @@ def logout_view(request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    response = Response(status=status.HTTP_204_NO_CONTENT)
+    request.user.spotify_access_token = None
+    request.user.spotify_refresh_token = None
+    request.user.save()
+
+    response = Response(
+        {'detail': 'Successfully logged out'},
+        status=status.HTTP_200_OK
+    )
     response.set_cookie(
-        'noshuff_refresh_token',
+        'refresh_token',
         value='',
         max_age=0,
+        path='/',
         httponly=True,
-        samesite='Lax',
         secure=True,
-        path='/'
+        samesite='Lax'
     )
 
     return response
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
