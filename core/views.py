@@ -37,7 +37,14 @@ def spotify_post_auth_callback(request):
         redirect_uri=settings.SPOTIPY_REDIRECT_URI,
         scope=settings.SPOTIFY_SCOPE
     )
-    token_data = sp_oauth.get_access_token(request.GET['code'])
+    try:
+        token_data = sp_oauth.get_access_token(request.GET['code'])
+    except:
+        return Response(
+            {'detail': 'Invalid token'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
     sp = Spotify(auth=token_data["access_token"])
     spotify_user = sp.current_user()
     noshuff_user_fields = get_noshuff_user_fields(spotify_user, token_data)
@@ -49,14 +56,14 @@ def spotify_post_auth_callback(request):
     noshuff_refresh_token = RefreshToken.for_user(noshuff_user)
     noshuff_access_token = str(noshuff_refresh_token.access_token)
 
-    params = urlencode({'noshuff_access_token': noshuff_access_token})
+    params = urlencode({'access_token': noshuff_access_token})
 
     # TODO: Use settings.NOSHUFF_FE_REDIRECT_URI when FE is ready
     redirect_url = f"{reverse("frontend_placeholder_redirect")}?{params}"
 
     response = HttpResponseRedirect(redirect_url)
     response.set_cookie(
-        key='noshuff_refresh_token',
+        key='refresh_token',
         value=noshuff_refresh_token,
         httponly=True,
         secure=True,
