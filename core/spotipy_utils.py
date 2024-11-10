@@ -40,7 +40,6 @@ def get_spotify_user_playlists(
     playlists = []
     limit = 50
     offset = 0
-
     try:
         while True:
             playlists_data = spotify.current_user_playlists(limit=limit, offset=offset)

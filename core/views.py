@@ -137,11 +137,21 @@ def current_user(request):
     return Response(serializer.data)
 
 @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def spotify_user_playlists(request):
-    # current_user = request.user
-    current_user = User.objects.first()
+    current_user = request.user
     playlists = get_spotify_user_playlists(current_user)
+    
+    serializer = PlaylistSerializer(playlists, many=True)
+
+    return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def spotify_user_playlist_detail(request):
+    current_user = request.user
+    playlists = get_spotify_user_playlist(current_user)
+
     serializer = PlaylistSerializer(playlists, many=True)
 
     return Response(serializer.data)

@@ -26,7 +26,11 @@ urlpatterns = [
     path('api/v1/current_user', views.current_user, name='current_user'),
 
     # Spotify Resources
-    path('api/v1/spotify_user_playlists', views.spotify_user_playlists, name='spotify_user_playlists'),
+    path(
+        'api/v1/spotify_user_playlists',
+        views.spotify_user_playlists,
+        name='spotify_user_playlists'
+    ),
 ]
 
 # OpenAPI
