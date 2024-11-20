@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 import uuid
+from spotipy import Spotify
 
 
 class TimestampModelMixin(models.Model):
@@ -53,3 +54,6 @@ class User(AbstractBaseUser, PermissionsMixin, TimestampModelMixin):
 
     def __str__(self):
         return self.email
+
+    def get_spotify_client(self):
+        return Spotify(auth=self.spotify_access_token)

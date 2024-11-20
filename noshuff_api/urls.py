@@ -28,8 +28,13 @@ urlpatterns = [
     # Spotify Resources
     path(
         'api/v1/spotify_user_playlists',
-        views.spotify_user_playlists,
-        name='spotify_user_playlists'
+        views.spotify_user_playlists_summary,
+        name='spotify_user_playlists_summary'
+    ),
+    path(
+        'api/v1/spotify_user_playlists/<str:spotify_playlist_id>',
+        views.spotify_user_playlist_detail,
+        name='spotify-user-playlist-detail'
     ),
 ]
 

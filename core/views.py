@@ -6,15 +6,24 @@ from django.urls import reverse
 import requests
 import json
 from core.models import User
-from core.spotipy_utils import get_noshuff_user_fields, get_spotify_user_playlists
+from core.spotipy_utils import (
+    get_noshuff_user_fields,
+    get_spotify_user_playlists,
+    get_spotify_playlist,
+)
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from urllib.parse import urlencode
-from core.serializers import UserSerializer, PlaylistSerializer
+from core.serializers import (
+    UserSerializer,
+    SpotifyPlaylistSummarySerializer,
+    SpotifyPlaylistDetailSerializer,
+)
 from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework.pagination import PageNumberPagination
 
 
 @api_view(['GET'])
@@ -138,20 +147,63 @@ def current_user(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def spotify_user_playlists(request):
+def spotify_user_playlists_summary(request):
     current_user = request.user
     playlists = get_spotify_user_playlists(current_user)
-    
-    serializer = PlaylistSerializer(playlists, many=True)
+    serializer = SpotifyPlaylistSummarySerializer(playlists, many=True)
 
     return Response(serializer.data)
+
+class SpotifyPageNumberPagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 100
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def spotify_user_playlist_detail(request):
-    current_user = request.user
-    playlists = get_spotify_user_playlist(current_user)
+def spotify_user_playlist_detail(request, spotify_playlist_id: str):
+    try:
+        spotify_client = request.user.get_spotify_client()
 
-    serializer = PlaylistSerializer(playlists, many=True)
+        paginator = SpotifyPageNumberPagination()
 
-    return Response(serializer.data)
+        try:
+            page = int(request.query_params.get('page', 1))
+            if page < 1:
+                return Response(
+                    {'error': 'Page number must be greater than 0'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        except ValueError:
+            return Response(
+                {'error': 'Invalid page number'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        page_size = paginator.get_page_size(request)
+
+        playlist_data = get_spotify_playlist(
+            spotify_client,
+            spotify_playlist_id,
+            page=page,
+            page_size=page_size
+        )
+
+        # Serialize the data
+        serializer = SpotifyPlaylistDetailSerializer(playlist_data)
+        
+        # Construct paginated response manually
+        return Response({
+            'count': playlist_data['total_tracks'],
+            'next': f'{request.build_absolute_uri()}?page={page + 1}&page_size={page_size}' 
+                   if (page * page_size) < playlist_data['total_tracks'] else None,
+            'previous': f'{request.build_absolute_uri()}?page={page - 1}&page_size={page_size}' 
+                       if page > 1 else None,
+            'results': serializer.data
+        })
+
+    except Exception as e:
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

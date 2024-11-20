@@ -17,7 +17,7 @@ class SpotifyPlaylistAPITests(APITestCase):
             spotify_access_token='test_access_token'
         )
         self.client.force_authenticate(user=self.user)
-        self.url = reverse('spotify_user_playlists')
+        self.url = reverse('spotify_user_playlists_summary')
 
         # First page of results
         self.user_playlists_response_page_1 = {

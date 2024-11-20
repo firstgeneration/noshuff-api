@@ -2,6 +2,9 @@ from django.utils import timezone
 from datetime import timedelta
 import spotipy
 from spotipy.exceptions import SpotifyException
+from typing import Dict, Any, List
+from spotipy import Spotify
+
 
 def get_avatar_url(images_list):
     try:
@@ -65,3 +68,52 @@ def get_spotify_user_playlists(
     except SpotifyException as e:
         print(f"Error fetching playlists: {e}")
         return None
+
+
+def get_spotify_playlist(
+        spotify_client,
+        playlist_id: str,
+        page: int = 1,
+        page_size: int = 20
+    ):
+    """
+    Fetch a Spotify playlist's tracks with pagination, excluding podcast episodes.
+    
+    Args:
+        spotify_client: Authenticated Spotipy client instance
+        playlist_id (str): Spotify playlist ID
+        page (int): Page number (1-based)
+        page_size (int): Number of items per page
+    
+    Returns:
+        tuple: (playlist_data, tracks_list) where playlist_data is the raw Spotipy response 
+        and tracks_list is the list of track objects for the current page
+    """
+    # Calculate offset based on page number (convert to 0-based)
+    offset = (page - 1) * page_size
+    
+    # Get full playlist data
+    playlist_data = spotify_client.playlist(
+        playlist_id,
+        fields='id,name,description,images,owner.display_name,followers.total'
+    )
+    
+    # Get tracks for the current page
+    tracks_response = spotify_client.playlist_tracks(
+        playlist_id,
+        offset=offset,
+        limit=page_size,
+        additional_types=['track'],
+        fields='items(track(id,name,duration_ms,album(name,images),artists(name))),total'
+    )
+
+    # Add total_tracks to playlist_data
+    playlist_data['total_tracks'] = tracks_response['total']
+
+    # Add tracks to playlist_data
+    playlist_data['tracks'] = [
+        item['track'] for item in tracks_response['items']
+        if item.get('track')
+    ]
+
+    return playlist_data
