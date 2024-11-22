@@ -21,8 +21,11 @@ class SpotifyUserPlaylistDetailTests(APITestCase):
         )
         
         self.playlist_id = 'playlist123'
-        self.url = reverse('spotify-user-playlist-detail', kwargs={'spotify_playlist_id': self.playlist_id})
-        
+        self.url = reverse(
+            'spotify-user-playlist-detail',
+            kwargs={'spotify_playlist_id': self.playlist_id}
+        )
+
         # Mock Spotify API response data
         self.mock_playlist_data = {
             'id': self.playlist_id,
